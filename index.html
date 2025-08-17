@@ -2,30 +2,31 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Pixel Empire 👑 8-bit</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pixel Empire 👑 8-bit Mobile</title>
 <style>
 body { margin:0; font-family:Verdana,sans-serif; background:#111; color:#fff; text-align:center; overflow:hidden;}
 header { background:#222; padding:10px;}
-h1 { margin:0; font-size:2em; color:gold; text-shadow:0 0 5px #fff;}
-#game { margin:20px auto; max-width:800px; position:relative;}
-button { margin:5px; padding:10px 20px; font-size:1em; cursor:pointer; border:none; border-radius:5px; background:gold; color:#111;}
-button:hover { background:#ff0;}
-#stats { margin:10px 0;}
-.progress-bar { background:#333; border-radius:5px; width:100%; height:20px; margin:5px 0; overflow:hidden;}
+h1 { margin:0; font-size:6vw; color:gold; text-shadow:0 0 5px #fff;}
+#game { margin:10px auto; max-width:100%; position:relative; touch-action: manipulation;}
+button { margin:5px; padding:12px 20px; font-size:5vw; cursor:pointer; border:none; border-radius:5px; background:gold; color:#111;}
+button:active { background:#ff0;}
+#stats { margin:10px 0; font-size:4vw;}
+.progress-bar { background:#333; border-radius:5px; width:90%; height:6vw; margin:5px auto; overflow:hidden;}
 .progress { background:gold; height:100%; width:0%;}
-#feed { background:#222; padding:10px; max-height:150px; overflow-y:auto; margin-top:10px;}
-.mission { background:#333; margin:5px 0; padding:5px; border-radius:5px;}
-#minigame, #gacha, #talents, #skins, #ranking { margin-top:20px;}
-#boss { background:#800; height:50px; width:200px; margin:10px auto; border-radius:5px; position:relative;}
+#feed { background:#222; padding:5px; max-height:25vh; overflow-y:auto; margin-top:5px; font-size:3.5vw;}
+.mission { background:#333; margin:3px 0; padding:3px; border-radius:5px; font-size:3.5vw;}
+#minigame, #gacha, #talents, #skins, #ranking { margin-top:10px; font-size:4vw;}
+#boss { background:#800; height:12vw; width:60vw; margin:10px auto; border-radius:5px; position:relative;}
 #bossHealth { background:gold; height:100%; width:100%; border-radius:5px;}
-.particle { position:absolute; width:8px; height:8px; background:yellow; border-radius:2px; pointer-events:none;}
-.sprite { width:32px; height:32px; image-rendering: pixelated; position:absolute; }
+.particle { position:absolute; width:4vw; height:4vw; background:yellow; border-radius:1vw; pointer-events:none;}
+.sprite { width:8vw; height:8vw; image-rendering: pixelated; position:absolute; }
 #coinsContainer { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;}
 </style>
 </head>
 <body>
 <header>
-<h1>Pixel Empire 👑 8-bit</h1>
+<h1>Pixel Empire 👑</h1>
 </header>
 
 <div id="game">
@@ -135,7 +136,8 @@ function updateRanking(){ranking[0].score=coins; ranking.sort((a,b)=>b.score-a.s
 document.getElementById('clickBtn').addEventListener('click',e=>{
     coins+=coinPerClick+talents.coin; clickCount++; gainXP(1+talents.xp);
     addFeed(`💰 Ganhou ${coinPerClick+talents.coin} moedas!`);
-    spawnParticle(e.clientX,e.clientY); spawnCoinSprite(e.clientX,e.clientY);
+    spawnParticle(e.touches?e.touches[0].clientX:e.clientX, e.touches?e.touches[0].clientY:e.clientY);
+    spawnCoinSprite(e.touches?e.touches[0].clientX:e.clientX, e.touches?e.touches[0].clientY:e.clientY);
     checkMissions(); updateStats();
 });
 
@@ -151,7 +153,7 @@ document.getElementById('prestigeBtn').addEventListener('click',()=>{if(level>=1
 // --- BOSS MINIGAME ---
 document.getElementById('hitBoss').addEventListener('click',()=>{
     let damage=coinPerClick*2+talents.coin; bossHealth-=damage; bossHits++;
-    bossSprite.style.transform='translateY(-5px)'; setTimeout(()=>bossSprite.style.transform='translateY(0)',100);
+    bossSprite.style.transform='translateY(-3vw)'; setTimeout(()=>bossSprite.style.transform='translateY(0)',100);
     if(bossHealth<=0){coins+=10+talents.coin; gems+=1; addFeed("🔥 Chefão derrotado! +10 moedas e 1 gema"); bossReset(); bossHits=0;}
     bossEl.style.width=(bossHealth/bossMax)*100+'%'; checkMissions(); updateStats();
 });
