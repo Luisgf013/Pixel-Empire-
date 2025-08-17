@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mineiro Infinito — Idle Incremental</title>
+<style>
+  :root{
+    --bg:#0b1220; --panel:#111a2d; --muted:#8ea5c7; --text:#e6f0ff; --acc:#4f8cff; --good:#63e6be; --warn:#ffd43b; --bad:#ff8787;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text)}
+  .app{display:grid;grid-template-columns:320px 1fr 360px;gap:14px;padding:14px;min-height:100%}
+  .col{background:var(--panel);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  h1,h2{margin:.2rem 0 0.6rem}
+  h1{font-size:20px}
+  h2{font-size:16px;color:var(--muted)}
+  .balance{display:flex;gap:10px;flex-wrap:wrap}
+  .pill{background:#0d1b34;border:1px solid rgba(255,255,255,.06);border-radius:999px;padding:8px 12px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .pill .dot{width:10px;height:10px;border-radius:50%}
+  .dot.gold{background:linear-gradient(#ffe066,#fcc419)}
+  .dot.gem{background:linear-gradient(#91a7ff,#4dabf7)}
+  .btn{background:var(--acc);border:0;color:#fff;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer}
+  .btn.ghost{background:#1b2742}
+  .btn.warn{background:var(--warn);color:#1a1a1a}
+  .btn.bad{background:var(--bad)}
+  .btn.good{background:var(--good);color:#102115}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .grid{display:grid;gap:10px}
+  .upgrade{display:flex;justify-content:space-between;align-items:center;background:#0d1b34;border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:10px}
+  .upgrade small{color:var(--muted)}
+  .bigButton{display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(120px 60px at 50% 20%, rgba(79,140,255,.2), transparent), #0d1b34;border:1px solid rgba(255,255,255,.06);border-radius:16px;min-height:190px;cursor:pointer;user-select:none}
+  .bigButton h2{color:#cfe3ff;margin-top:6px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .panelHeader{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .kbd{background:#0e1730;border:1px solid rgba(255,255,255,.06);padding:2px 6px;border-radius:6px;color:#cde}
+  .bar{height:10px;background:#0e1730;border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,.05)}
+  .fill{height:100%;background:linear-gradient(90deg,#4dabf7,#91a7ff)}
+  .note{font-size:12px;color:var(--muted)}
+  .tabs{display:flex;gap:8px;margin-bottom:8px}
+  .tab{padding:8px 10px;border-radius:8px;background:#0d1b34;border:1px solid rgba(255,255,255,.06);cursor:pointer}
+  .tab.active{background:#1b2742}
+  .badge{background:#1b2d4f;border:1px solid rgba(255,255,255,.08);padding:4px 8px;border-radius:999px;color:#cfe}
+  .shopItem{display:flex;align-items:center;justify-content:space-between;background:#0d1b34;border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:10px}
+  .tiny{font-size:12px;color:#9fb6d9}
+  .footer{opacity:.7;margin-top:10px;font-size:12px}
+  @media (max-width:1100px){ .app{grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ESQUERDA: Ações e Upgrades -->
+  <div class="col">
+    <div class="panelHeader">
+      <h1>⛏️ Mineiro Infinito</h1>
+      <button id="btnReset" class="btn ghost" title="Zerar progresso (confirmação)">Zerar</button>
+    </div>
+    <div class="balance">
+      <div class="pill"><span class="dot gold"></span><span id="gold">0</span> ouro</div>
+      <div class="pill"><span class="dot gem"></span><span id="gems">0</span> gemas</div>
+      <div class="pill">x<span id="multi">1.00</span> multiplicador</div>
+    </div>
+
+    <div style="margin:10px 0">
+      <div class="row" style="justify-content:space-between">
+        <div>Produção por clique: <b id="perClick">1</b></div>
+        <div>Produção automática/s: <b id="perSec">0</b></div>
+      </div>
+      <div class="bar"><div id="offlineFill" class="fill" style="width:0%"></div></div>
+      <div class="note">Dica: segure <span class="kbd">Espaço</span> para clicar rapidinho.</div>
+    </div>
+
+    <div id="clickArea" class="bigButton">
+      <div style="font-size:48px">🪨</div>
+      <h2>Minerar</h2>
+      <div class="tiny">Clique/Toque para coletar ouro</div>
+    </div>
+
+    <h2>Upgrades</h2>
+    <div id="upgrades" class="grid"></div>
+
+    <h2 style="margin-top:12px">Automação</h2>
+    <div id="autos" class="grid"></div>
+  </div>
+
+  <!-- MEIO: Metajogo -->
+  <div class="col">
+    <div class="panelHeader">
+      <h1>Metaprogressão</h1>
+      <span class="badge">tempo jogado: <span id="playtime">0m</span></span>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="missions">Missões</div>
+      <div class="tab" data-tab="prestige">Prestígio</div>
+      <div class="tab" data-tab="events">Eventos</div>
+      <div class="tab" data-tab="themes">Temas</div>
+    </div>
+
+    <div id="tab-missions" class="grid">
+      <div class="upgrade">
+        <div>
+          <div><b>Diária: Colete 1.000 ouro</b></div>
+          <small>Recompensa: 5 gemas</small>
+        </div>
+        <button id="claimDaily" class="btn" disabled>Resgatar</button>
+      </div>
+      <div class="upgrade">
+        <div>
+          <div><b>Desafio: 10.000 ouro sem renascer</b></div>
+          <small>Recompensa: +10% multiplicador permanente</small>
+        </div>
+        <button id="claimChallenge" class="btn" disabled>Resgatar</button>
+      </div>
+      <div class="note">As missões reiniciam todos os dias (baseado no seu horário local).</div>
+    </div>
+
+    <div id="tab-prestige" style="display:none" class="grid">
+      <div class="upgrade">
+        <div>
+          <div><b>Renascimento</b> — converta seu progresso em <b>Gemas</b></div>
+          <small>Você ganha gemas baseado no total vitalício de ouro. Renascer zera ouro e upgrades, mas aumenta o multiplicador global.</small>
+        </div>
+      </div>
+      <div class="row">
+        <div class="pill">Gemas ao renascer: <b id="gemsOnPrestige">0</b></div>
+        <div class="pill">Bônus por gema: <b>+2% multiplicador</b></div>
+      </div>
+      <button id="btnPrestige" class="btn warn">Renascer agora</button>
+      <div class="note">Fórmula: gemas = ⌊√(ouro vitalício / 1.000)⌋</div>
+    </div>
+
+    <div id="tab-events" style="display:none" class="grid">
+      <div class="upgrade">
+        <div>
+          <div><b>Eventos aleatórios</b></div>
+          <small>Ocorrem de tempos em tempos e dão pequenas vantagens.</small>
+        </div>
+        <button id="triggerEvent" class="btn ghost">Forçar Evento (debug)</button>
+      </div>
+      <div id="eventLog" class="grid"></div>
+    </div>
+
+    <div id="tab-themes" style="display:none" class="grid">
+      <div class="shopItem">
+        <div>
+          <div><b>Tema: Aurora</b></div>
+          <div class="tiny">Cores frias relaxantes</div>
+        </div>
+        <button data-theme="aurora" class="btn good">Aplicar</button>
+      </div>
+      <div class="shopItem">
+        <div>
+          <div><b>Tema: Vulcânico</b></div>
+          <div class="tiny">Cores quentes energéticas</div>
+        </div>
+        <button data-theme="lava" class="btn good">Aplicar</button>
+      </div>
+      <div class="shopItem">
+        <div>
+          <div><b>Tema: Clássico</b></div>
+          <div class="tiny">Voltar ao padrão</div>
+        </div>
+        <button data-theme="default" class="btn">Aplicar</button>
+      </div>
+
+      <h2>Loja de cosméticos (placeholder)</h2>
+      <div class="shopItem">
+        <div>
+          <div><b>Pacote Brilho</b></div>
+          <div class="tiny">+10 gemas (somente teste, sem cobrança real)</div>
+        </div>
+        <button id="buyGems" class="btn">Adicionar 10 gemas</button>
+      </div>
+      <div class="note">Monetização ética: apenas cosméticos/conveniências. Sem loot boxes/azar. Compras reais exigem backend — aqui é só simulação para testes.</div>
+    </div>
+
+    <div class="footer">Progresso salva automaticamente. Fechar e voltar depois rende <b>progresso offline</b>.</div>
+  </div>
+
+  <!-- DIREITA: Log e Estatísticas -->
+  <div class="col">
+    <div class="panelHeader">
+      <h1>Estatísticas</h1>
+      <span class="badge">v1.0</span>
+    </div>
+    <div class="grid">
+      <div class="upgrade">
+        <div>Total vitalício de ouro</div><b id="lifetime">0</b>
+      </div>
+      <div class="upgrade">
+        <div>Cliques</div><b id="clicks">0</b>
+      </div>
+      <div class="upgrade">
+        <div>Renascimentos</div><b id="prestiges">0</b>
+      </div>
+    </div>
+
+    <h2 style="margin-top:12px">Feed</h2>
+    <div id="feed" class="grid"></div>
+  </div>
+</div>
+
+<script>
+/** ======= Núcleo do jogo ======= **/
+const e = (id)=>document.getElementById(id);
+const fmt = (n)=> n>=1e9? (n/1e9).toFixed(2)+'B' : n>=1e6? (n/1e6).toFixed(2)+'M' : n>=1e3? (n/1e3).toFixed(2)+'k' : Math.floor(n).toString();
+
+const state = {
+  gold: 0,
+  gems: 0,
+  lifetime: 0,
+  clicks: 0,
+  perClick: 1,
+  perSec: 0,
+  multi: 1,
+  upgrades: [
+    { id:'pick1', name:'Picareta de Ferro', desc:'Clique +1', base:25, level:0, incClick:1 },
+    { id:'pick2', name:'Picareta de Aço', desc:'Clique +5', base:200, level:0, incClick:5 },
+    { id:'comp',  name:'Compressor', desc:'Clique +25', base:1200, level:0, incClick:25 },
+  ],
+  autos: [
+    { id:'cart',  name:'Carrinho', desc:'+1/s', base:50,  level:0, incSec:1 },
+    { id:'dwarf', name:'Anão Minerador', desc:'+5/s', base:350, level:0, incSec:5 },
+    { id:'drill', name:'Broca Automática', desc:'+20/s', base:2200, level:0, incSec:20 },
+  ],
+  prestige: { times:0 },
+  lastSave: Date.now(),
+  lastTick: Date.now(),
+  dailyKey: dailyKey(),
+  dailyDone: false,
+  challengeDone: false,
+  theme: 'default',
+};
+
+function dailyKey(){
+  const d=new Date(); return [d.getFullYear(), d.getMonth()+1, d.getDate()].join('-');
+}
+
+/** custos crescentes */
+function cost(base, level){ return Math.floor(base * Math.pow(1.15, level)); }
+
+/** persistência */
+function save(){
+  state.lastSave = Date.now();
+  localStorage.setItem('idle_miner_v1', JSON.stringify(state));
+}
+function load(){
+  const raw = localStorage.getItem('idle_miner_v1');
+  if(!raw) return;
+  try{
+    const s = JSON.parse(raw);
+    Object.assign(state, s);
+    // reset de diária ao trocar o dia
+    if(state.dailyKey !== dailyKey()){ state.dailyKey = dailyKey(); state.dailyDone=false; }
+  }catch(e){}
+}
+
+/** progresso offline */
+function grantOffline(){
+  const now = Date.now();
+  const deltaSec = Math.min(60*60*8, Math.floor((now - state.lastSave)/1000)); // até 8h
+  if(deltaSec>0){
+    const gain = state.perSec * state.multi * deltaSec;
+    state.gold += gain; state.lifetime += gain;
+    logFeed(`⏱️ Progresso offline: +${fmt(gain)} ouro em ${Math.floor(deltaSec/60)}m`);
+    const pct = Math.min(100, (deltaSec/(60*60*8))*100);
+    e('offlineFill').style.width = pct+'%';
+  }
+}
+
+/** UI: render */
+function render(){
+  e('gold').textContent = fmt(state.gold);
+  e('gems').textContent = fmt(state.gems);
+  e('multi').textContent = state.multi.toFixed(2);
+  e('perClick').textContent = fmt(state.perClick * state.multi);
+  e('perSec').textContent = fmt(state.perSec * state.multi);
+  e('lifetime').textContent = fmt(state.lifetime);
+  e('clicks').textContent = fmt(state.clicks);
+  e('prestiges').textContent = fmt(state.prestige.times);
+
+  // upgrades
+  const upgWrap = e('upgrades'); upgWrap.innerHTML='';
+  state.upgrades.forEach(u=>{
+    const c = cost(u.base, u.level);
+    const can = state.gold >= c;
+    const div = document.createElement('div');
+    div.className='upgrade';
+    div.innerHTML = `
+      <div>
+        <div><b>${u.name}</b> <small>Lv.${u.level}</small></div>
+        <small>${u.desc}</small>
+      </div>
+      <div class="row">
+        <div class="pill">${fmt(c)} ouro</div>
+        <button class="btn ${can?'':'ghost'}" ${can?'':'disabled'}>Comprar</button>
+      </div>
+    `;
+    div.querySelector('button').onclick=()=>buyUpgrade(u);
+    upgWrap.appendChild(div);
+  });
+
+  // automação
+  const autoWrap = e('autos'); autoWrap.innerHTML='';
+  state.autos.forEach(a=>{
+    const c = cost(a.base, a.level);
+    const can = state.gold >= c;
+    const div = document.createElement('div');
+    div.className='upgrade';
+    div.innerHTML = `
+      <div>
+        <div><b>${a.name}</b> <small>Lv.${a.level}</small></div>
+        <small>${a.desc}</small>
+      </div>
+      <div class="row">
+        <div class="pill">${fmt(c)} ouro</div>
+        <button class="btn ${can?'':'ghost'}" ${can?'':'disabled'}>Comprar</button>
+      </div>
+    `;
+    div.querySelector('button').onclick=()=>buyAuto(a);
+    autoWrap.appendChild(div);
+  });
+
+  // prestígio
+  const gemsGain = Math.floor(Math.sqrt(state.lifetime/1000));
+  e('gemsOnPrestige').textContent = fmt(gemsGain);
+
+  // diária/challenge
+  e('claimDaily').disabled = !(state.gold >= 1000 && !state.dailyDone);
+  e('claimChallenge').disabled = !(state.gold >= 10000 && !state.challengeDone);
+}
+
+/** compras */
+function buyUpgrade(u){
+  const c = cost(u.base, u.level);
+  if(state.gold < c) return;
+  state.gold -= c;
+  u.level++;
+  state.perClick += u.incClick;
+  pop(`+Clique agora ${fmt(state.perClick*state.multi)}`);
+  render(); save();
+}
+function buyAuto(a){
+  const c = cost(a.base, a.level);
+  if(state.gold < c) return;
+  state.gold -= c;
+  a.level++;
+  state.perSec += a.incSec;
+  pop(`+Auto agora ${fmt(state.perSec*state.multi)}/s`);
+  render(); save();
+}
+
+/** clique principal */
+function clickMine(){
+  const gain = state.perClick * state.multi;
+  state.gold += gain;
+  state.lifetime += gain;
+  state.clicks++;
+  pop(`+${fmt(gain)}`);
+  render();
+}
+
+/** partícula de feedback */
+function pop(text){
+  const el = document.createElement('div');
+  el.textContent = text;
+  el.style.position='fixed'; el.style.left='50%'; el.style.top='45%';
+  el.style.transform='translate(-50%,-50%)';
+  el.style.padding='6px 10px'; el.style.borderRadius='999px';
+  el.style.background='rgba(79,140,255,.15)'; el.style.border='1px solid rgba(255,255,255,.12)';
+  el.style.color='#cfe3ff'; el.style.fontWeight='700'; el.style.pointerEvents='none';
+  document.body.appendChild(el);
+  let y=0, a=1; const id=setInterval(()=>{ y-=1; a-=0.02; el.style.transform=`translate(-50%, calc(-50% + ${y}px))`; el.style.opacity=a; if(a<=0){clearInterval(id); el.remove();}}, 16);
+}
+
+/** loop */
+function tick(){
+  const now = Date.now();
+  const dt = (now - state.lastTick)/1000;
+  state.lastTick = now;
+
+  const gain = state.perSec * state.multi * dt;
+  if(gain>0){ state.gold += gain; state.lifetime += gain; }
+
+  // eventos aleatórios
+  maybeEvent(dt);
+
+  // playtime
+  totalPlay += dt;
+  if(timeUI<=0){ e('playtime').textContent = toMM(totalPlay); timeUI=2; } else timeUI-=dt;
+
+  render();
+}
+let totalPlay=0, timeUI=0;
+function toMM(sec){ const m=Math.floor(sec/60); return m+'m'; }
+
+/** Eventos aleatórios simples */
+let eventTimer = 15; // segundos até o próximo (ajuste a gosto)
+function maybeEvent(dt){
+  eventTimer -= dt;
+  if(eventTimer<=0){
+    eventTimer = 20 + Math.random()*30;
+    const r = Math.random();
+    if(r<.34){ // frenesi de clique
+      const boost = 1 + Math.random()*0.5;
+      state.perClick *= (boost+0.5);
+      logEvent(`⚡ Frenesi de clique! Clique x${(boost+0.5).toFixed(2)} por 20s`);
+      setTimeout(()=>{ state.perClick /= (boost+0.5); }, 20000);
+    }else if(r<.68){ // chuva de ouro
+      const bonus = 100 + Math.floor(Math.random()*400);
+      state.gold += bonus; state.lifetime += bonus;
+      logEvent(`🌧️ Chuva de ouro: +${fmt(bonus)}`);
+    }else{ // multiplicador relâmpago
+      state.multi *= 1.25;
+      logEvent(`✨ Bênção: multiplicador x1.25 por 30s`);
+      setTimeout(()=>{ state.multi /= 1.25; render(); }, 30000);
+    }
+    render();
+  }
+}
+
+/** Prestígio */
+function doPrestige(){
+  const gain = Math.floor(Math.sqrt(state.lifetime/1000));
+  if(gain<=0){ alert('Junte mais ouro para ganhar gemas ao renascer!'); return; }
+  if(!confirm(`Você ganhará ${gain} gemas e reiniciará upgrades. Continuar?`)) return;
+  state.gems += gain;
+  state.prestige.times++;
+  // bônus permanente: +2% por gema total
+  state.multi = 1 + (state.gems * 0.02);
+
+  // reset soft
+  state.gold = 0; state.perClick = 1; state.perSec = 0;
+  state.upgrades.forEach(u=>u.level=0);
+  state.autos.forEach(a=>a.level=0);
+
+  logFeed(`🔄 Renascimento: ganhou ${gain} gemas. Multiplicador agora x${state.multi.toFixed(2)}.`);
+  render(); save();
+}
+
+/** Missões */
+function tryDaily(){ if(state.gold>=1000 && !state.dailyDone){ state.gems+=5; state.dailyDone=true; logFeed('🎁 Diária concluída: +5 gemas'); render(); save(); } }
+function tryChallenge(){ if(state.gold>=10000 && !state.challengeDone){ // +10% multi permanente
+  const baseGems = state.gems;
+  state.multi *= 1.10; state.challengeDone=true; logFeed('🏆 Desafio concluído: multiplicador +10% permanente!');
+  render(); save();
+}}
+
+/** Tema */
+function applyTheme(name){
+  state.theme = name; save();
+  if(name==='aurora'){
+    document.documentElement.style.setProperty('--bg','#0b1328');
+    document.documentElement.style.setProperty('--panel','#0c1b34');
+    document.documentElement.style.setProperty('--acc','#6ea8fe');
+  }else if(name==='lava'){
+    document.documentElement.style.setProperty('--bg','#1b0b0b');
+    document.documentElement.style.setProperty('--panel','#241111');
+    document.documentElement.style.setProperty('--acc','#ff6b6b');
+  }else{
+    document.documentElement.style.setProperty('--bg','#0b1220');
+    document.documentElement.style.setProperty('--panel','#111a2d');
+    document.documentElement.style.setProperty('--acc','#4f8cff');
+  }
+}
+
+/** Log */
+function logFeed(msg){
+  const wrap = e('feed');
+  const row = document.createElement('div');
+  row.className='upgrade';
+  row.innerHTML = `<div class="tiny">${msg}</div><div>${new Date().toLocaleTimeString()}</div>`;
+  wrap.prepend(row);
+}
+function logEvent(msg){
+  const wrap = e('eventLog');
+  const row = document.createElement('div');
+  row.className='upgrade';
+  row.innerHTML = `<div>${msg}</div>`;
+  wrap.prepend(row);
+  logFeed(msg);
+}
+
+/** ======= Interações ======= **/
+const clickArea = e('clickArea');
+clickArea.addEventListener('click', clickMine);
+let spaceHeld=false, repeater=null;
+window.addEventListener('keydown', (ev)=>{ if(ev.code==='Space' && !spaceHeld){ spaceHeld=true; clickMine(); repeater=setInterval(clickMine, 70);} });
+window.addEventListener('keyup', (ev)=>{ if(ev.code==='Space'){ spaceHeld=false; clearInterval(repeater);} });
+
+e('btnPrestige').onclick = doPrestige;
+e('claimDaily').onclick = tryDaily;
+e('claimChallenge').onclick = tryChallenge;
+e('triggerEvent').onclick = ()=>{ eventTimer=0; };
+
+document.querySelectorAll('[data-theme]').forEach(btn=>{
+  btn.addEventListener('click', ()=> applyTheme(btn.getAttribute('data-theme')));
+});
+e('buyGems').onclick = ()=>{ state.gems+=10; logFeed('💎 Teste: +10 gemas (placeholder)'); render(); save(); };
+
+// Tabs
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    const name = t.getAttribute('data-tab');
+    ['missions','prestige','events','themes'].forEach(k=>{
+      e('tab-'+k).style.display = (k===name)?'block':'none';
+    });
+  });
+});
+
+// Reset
+e('btnReset').onclick = ()=>{
+  if(confirm('Tem certeza que deseja zerar TODO o progresso?')){
+    localStorage.removeItem('idle_miner_v1');
+    location.reload();
+  }
+};
+
+/** ======= Boot ======= **/
+load();
+grantOffline();
+applyTheme(state.theme);
+render();
+state.lastTick = Date.now();
+setInterval(()=>{ tick(); save(); }, 1000/10); // 10 TPS
+
+// Atualiza botões dependentes de tempo
+setInterval(()=>{
+  e('claimDaily').disabled = !(state.gold >= 1000 && !state.dailyDone);
+  e('claimChallenge').disabled = !(state.gold >= 10000 && !state.challengeDone);
+}, 500);
+
+/** ======= Acessibilidade ======= **/
+clickArea.setAttribute('role','button');
+clickArea.setAttribute('aria-label','Minerar');
+</script>
+</body>
+</html>
