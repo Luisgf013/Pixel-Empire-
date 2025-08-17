@@ -2,12 +2,12 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Pixel Empire 👑 Ultra</title>
+<title>Pixel Empire 👑 8-bit</title>
 <style>
-body { margin:0; font-family:Verdana,sans-serif; background:#111; color:#fff; text-align:center;}
+body { margin:0; font-family:Verdana,sans-serif; background:#111; color:#fff; text-align:center; overflow:hidden;}
 header { background:#222; padding:10px;}
-h1 { margin:0; font-size:2em; color:gold; text-shadow:0 0 10px #fff;}
-#game { margin:20px auto; max-width:800px;}
+h1 { margin:0; font-size:2em; color:gold; text-shadow:0 0 5px #fff;}
+#game { margin:20px auto; max-width:800px; position:relative;}
 button { margin:5px; padding:10px 20px; font-size:1em; cursor:pointer; border:none; border-radius:5px; background:gold; color:#111;}
 button:hover { background:#ff0;}
 #stats { margin:10px 0;}
@@ -16,14 +16,16 @@ button:hover { background:#ff0;}
 #feed { background:#222; padding:10px; max-height:150px; overflow-y:auto; margin-top:10px;}
 .mission { background:#333; margin:5px 0; padding:5px; border-radius:5px;}
 #minigame, #gacha, #talents, #skins, #ranking { margin-top:20px;}
-#boss { background:red; height:50px; width:200px; margin:10px auto; border-radius:5px; position:relative;}
+#boss { background:#800; height:50px; width:200px; margin:10px auto; border-radius:5px; position:relative;}
 #bossHealth { background:gold; height:100%; width:100%; border-radius:5px;}
-.particle { position:absolute; width:5px; height:5px; background:yellow; border-radius:50%; pointer-events:none; }
+.particle { position:absolute; width:8px; height:8px; background:yellow; border-radius:2px; pointer-events:none;}
+.sprite { width:32px; height:32px; image-rendering: pixelated; position:absolute; }
+#coinsContainer { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;}
 </style>
 </head>
 <body>
 <header>
-<h1>Pixel Empire 👑 Ultra</h1>
+<h1>Pixel Empire 👑 8-bit</h1>
 </header>
 
 <div id="game">
@@ -46,9 +48,12 @@ button:hover { background:#ff0;}
 <h3>Feed</h3>
 <div id="feed"></div>
 
+<div id="coinsContainer"></div>
+
 <div id="minigame">
 <h3>Minigame: Clique no Chefão!</h3>
 <div id="boss">
+<img id="bossSprite" class="sprite" src="https://i.imgur.com/8bitBoss.png" alt="Chefão">
 <div id="bossHealth"></div>
 </div>
 <button id="hitBoss">Atacar!</button>
@@ -86,11 +91,7 @@ let coins=0, gems=0, level=1, xp=0, prestige=0;
 let coinPerClick=1, autoCoins=0;
 let bossHealth=100, bossMax=100;
 let clickCount=0, bossHits=0;
-let missions=[
-{desc:"Colete 50 moedas", goal:50, done:false},
-{desc:"Clique 100 vezes", goal:100, done:false},
-{desc:"Ataque o chefão 10 vezes", goal:10, done:false}
-];
+let missions=[{desc:"Colete 50 moedas", goal:50, done:false},{desc:"Clique 100 vezes", goal:100, done:false},{desc:"Ataque o chefão 10 vezes", goal:10, done:false}];
 let talents={coin:0,xp:0,auto:0};
 let skinsUnlocked={click:false,boss:false};
 let ranking=[{name:"Player",score:0}];
@@ -105,8 +106,10 @@ const prestigeEl=document.getElementById('prestige');
 const missionsEl=document.getElementById('missions');
 const feedEl=document.getElementById('feed');
 const bossEl=document.getElementById('bossHealth');
+const bossSprite=document.getElementById('bossSprite');
 const rankList=document.getElementById('rankList');
 const gachaResult=document.getElementById('gachaResult');
+const coinsContainer=document.getElementById('coinsContainer');
 
 // --- FUNCTIONS ---
 function updateStats(){
@@ -117,149 +120,59 @@ function updateStats(){
     xpBar.style.width=xp+'%';
     prestigeEl.textContent=prestige;
     missionsEl.innerHTML='';
-    missions.forEach((m,i)=>{
-        missionsEl.innerHTML+=`<div class="mission">${m.desc} - ${m.done?"✅":"❌"}</div>`;
-    });
+    missions.forEach(m=>missionsEl.innerHTML+=`<div class="mission">${m.desc} - ${m.done?"✅":"❌"}</div>`);
     updateRanking();
 }
-function addFeed(text){
-    const p=document.createElement('p');
-    p.textContent=text;
-    feedEl.prepend(p);
-}
-function gainXP(amount){
-    xp+=amount;
-    if(xp>=100){
-        xp-=100;
-        level++;
-        addFeed(`✨ Subiu para nível ${level}!`);
-    }
-}
-function checkMissions(){
-    missions.forEach((m,i)=>{
-        if(!m.done){
-            if((m.desc.includes("moedas") && coins>=m.goal) ||
-               (m.desc.includes("Clique") && clickCount>=m.goal) ||
-               (m.desc.includes("chefão") && bossHits>=m.goal)){
-                m.done=true;
-                gems+=5;
-                addFeed(`🎉 Missão completa: ${m.desc} - +5 gemas`);
-            }
-        }
-    });
-}
-function bossReset(){
-    bossMax=100+level*10;
-    bossHealth=bossMax;
-    bossEl.style.width='100%';
-}
-function spawnParticle(x,y){
-    const p=document.createElement('div');
-    p.className='particle';
-    p.style.left=x+'px';
-    p.style.top=y+'px';
-    document.body.appendChild(p);
-    setTimeout(()=>{p.remove();},500);
-}
-function updateRanking(){
-    ranking[0].score=coins;
-    ranking.sort((a,b)=>b.score-a.score);
-    rankList.innerHTML='';
-    ranking.forEach(r=>{
-        const li=document.createElement('li');
-        li.textContent=`${r.name}: ${r.score}`;
-        rankList.appendChild(li);
-    });
-}
+function addFeed(text){const p=document.createElement('p'); p.textContent=text; feedEl.prepend(p);}
+function gainXP(amount){xp+=amount; if(xp>=100){xp-=100; level++; addFeed(`✨ Subiu para nível ${level}!`);}}
+function checkMissions(){missions.forEach(m=>{if(!m.done){if((m.desc.includes("moedas")&&coins>=m.goal)||(m.desc.includes("Clique")&&clickCount>=m.goal)||(m.desc.includes("chefão")&&bossHits>=m.goal)){m.done=true; gems+=5; addFeed(`🎉 Missão completa: ${m.desc} - +5 gemas`);}}});}
+function bossReset(){bossMax=100+level*10; bossHealth=bossMax; bossEl.style.width='100%';}
+function spawnParticle(x,y){const p=document.createElement('div'); p.className='particle'; p.style.left=x+'px'; p.style.top=y+'px'; coinsContainer.appendChild(p); setTimeout(()=>p.remove(),800);}
+function spawnCoinSprite(x,y){const s=document.createElement('img'); s.src="https://i.imgur.com/8bitCoin.png"; s.className="sprite"; s.style.left=x+'px'; s.style.top=y+'px'; coinsContainer.appendChild(s); setTimeout(()=>s.remove(),800);}
+function updateRanking(){ranking[0].score=coins; ranking.sort((a,b)=>b.score-a.score); rankList.innerHTML=''; ranking.forEach(r=>{const li=document.createElement('li'); li.textContent=`${r.name}: ${r.score}`; rankList.appendChild(li);});}
 
 // --- CLICK GAME ---
 document.getElementById('clickBtn').addEventListener('click',e=>{
-    coins+=coinPerClick + talents.coin;
-    clickCount++;
-    gainXP(1+talents.xp);
+    coins+=coinPerClick+talents.coin; clickCount++; gainXP(1+talents.xp);
     addFeed(`💰 Ganhou ${coinPerClick+talents.coin} moedas!`);
-    spawnParticle(e.clientX,e.clientY);
-    checkMissions();
-    updateStats();
+    spawnParticle(e.clientX,e.clientY); spawnCoinSprite(e.clientX,e.clientY);
+    checkMissions(); updateStats();
 });
 
 // --- UPGRADE ---
-document.getElementById('upgradeBtn').addEventListener('click',()=>{
-    if(coins>=10){ coins-=10; coinPerClick++; addFeed(`⬆️ Upgrade comprado! Cada clique vale ${coinPerClick} moedas`);}
-    else addFeed("❌ Moedas insuficientes para upgrade.");
-});
+document.getElementById('upgradeBtn').addEventListener('click',()=>{if(coins>=10){coins-=10; coinPerClick++; addFeed(`⬆️ Upgrade comprado! Cada clique vale ${coinPerClick} moedas`);}else addFeed("❌ Moedas insuficientes para upgrade.");});
 
 // --- AUTO CLICK ---
-document.getElementById('autoBtn').addEventListener('click',()=>{
-    if(gems>=5){ gems-=5; autoCoins=1; addFeed("🤖 Automatização comprada!"); updateStats();}
-    else addFeed("❌ Gemas insuficientes.");
-});
+document.getElementById('autoBtn').addEventListener('click',()=>{if(gems>=5){gems-=5; autoCoins=1; addFeed("🤖 Automatização comprada!"); updateStats();}else addFeed("❌ Gemas insuficientes.");});
 
 // --- PRESTIGE ---
-document.getElementById('prestigeBtn').addEventListener('click',()=>{
-    if(level>=10){ prestige++; coins=0; gems=0; level=1; xp=0; coinPerClick=1; autoCoins=0; clickCount=0; bossHits=0; bossReset(); addFeed(`👑 Prestígio alcançado! Total de prestígio: ${prestige}`); updateStats();}
-    else addFeed("❌ Alcance nível 10 para Prestígio.");
-});
+document.getElementById('prestigeBtn').addEventListener('click',()=>{if(level>=10){prestige++; coins=0; gems=0; level=1; xp=0; coinPerClick=1; autoCoins=0; clickCount=0; bossHits=0; bossReset(); addFeed(`👑 Prestígio alcançado! Total de prestígio: ${prestige}`); updateStats();}else addFeed("❌ Alcance nível 10 para Prestígio.");});
 
 // --- BOSS MINIGAME ---
 document.getElementById('hitBoss').addEventListener('click',()=>{
-    let damage=coinPerClick*2 + talents.coin;
-    bossHealth-=damage;
-    bossHits++;
-    if(bossHealth<=0){ coins+=10+talents.coin; gems+=1; addFeed("🔥 Chefão derrotado! +10 moedas e 1 gema"); bossReset(); bossHits=0;}
-    bossEl.style.width=(bossHealth/bossMax)*100+'%';
-    checkMissions();
-    updateStats();
+    let damage=coinPerClick*2+talents.coin; bossHealth-=damage; bossHits++;
+    bossSprite.style.transform='translateY(-5px)'; setTimeout(()=>bossSprite.style.transform='translateY(0)',100);
+    if(bossHealth<=0){coins+=10+talents.coin; gems+=1; addFeed("🔥 Chefão derrotado! +10 moedas e 1 gema"); bossReset(); bossHits=0;}
+    bossEl.style.width=(bossHealth/bossMax)*100+'%'; checkMissions(); updateStats();
 });
 
 // --- TALENTS ---
-document.querySelectorAll('.talentBtn').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-        let buff=btn.dataset.buff;
-        if(gems>=5){ gems-=5; talents[buff]++; addFeed(`💡 Talento ${buff} adquirido!`); updateStats();}
-        else addFeed("❌ Gemas insuficientes para talento.");
-    });
-});
+document.querySelectorAll('.talentBtn').forEach(btn=>{btn.addEventListener('click',()=>{let buff=btn.dataset.buff;if(gems>=5){gems-=5; talents[buff]++; addFeed(`💡 Talento ${buff} adquirido!`); updateStats();}else addFeed("❌ Gemas insuficientes para talento.");});});
 
 // --- GACHA ---
-document.getElementById('gachaBtn').addEventListener('click',()=>{
-    if(gems>=3){
-        gems-=3;
-        let reward=Math.random();
-        if(reward<0.5){ coins+=10+talents.coin; gachaResult.textContent="🎉 Ganhou 10 moedas!";}
-        else if(reward<0.8){ gems+=2; gachaResult.textContent="💎 Ganhou 2 gemas!";}
-        else { talents.coin++; gachaResult.textContent="💡 Ganhou talento bônus de moedas!";}
-        updateStats();
-    } else gachaResult.textContent="❌ Gemas insuficientes!";
-});
+document.getElementById('gachaBtn').addEventListener('click',()=>{if(gems>=3){gems-=3; let reward=Math.random(); if(reward<0.5){coins+=10+talents.coin; gachaResult.textContent="🎉 Ganhou 10 moedas!";} else if(reward<0.8){gems+=2; gachaResult.textContent="💎 Ganhou 2 gemas!";} else {talents.coin++; gachaResult.textContent="💡 Ganhou talento bônus de moedas!";} updateStats();}else gachaResult.textContent="❌ Gemas insuficientes!";});
 
 // --- SKINS ---
-document.querySelectorAll('.skinBtn').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-        let skin=btn.dataset.skin;
-        skinsUnlocked[skin]=!skinsUnlocked[skin];
-        addFeed(`✨ Skin ${skin} ${skinsUnlocked[skin]?"ativada":"desativada"}`);
-    });
-});
+document.querySelectorAll('.skinBtn').forEach(btn=>{btn.addEventListener('click',()=>{let skin=btn.dataset.skin; skinsUnlocked[skin]=!skinsUnlocked[skin]; addFeed(`✨ Skin ${skin} ${skinsUnlocked[skin]?"ativada":"desativada"}`);});});
 
 // --- AUTO COINS INTERVAL ---
-setInterval(()=>{
-    coins+=autoCoins+talents.auto;
-    if(autoCoins>0) addFeed(`🤖 Automatização gerou ${autoCoins+talents.auto} moedas.`);
-    gainXP(autoCoins+talents.auto);
-    checkMissions();
-    updateStats();
-},5000);
+setInterval(()=>{coins+=autoCoins+talents.auto; if(autoCoins>0) addFeed(`🤖 Automatização gerou ${autoCoins+talents.auto} moedas.`); gainXP(autoCoins+talents.auto); checkMissions(); updateStats();},5000);
 
 // --- RANDOM EVENTS ---
-setInterval(()=>{
-    let chance=Math.random();
-    if(chance<0.1){ let bonus=5+Math.floor(Math.random()*5); coins+=bonus; addFeed(`🎁 Evento surpresa! Ganhou ${bonus} moedas`); updateStats();}
-},15000);
+setInterval(()=>{let chance=Math.random(); if(chance<0.1){let bonus=5+Math.floor(Math.random()*5); coins+=bonus; addFeed(`🎁 Evento surpresa! Ganhou ${bonus} moedas`); updateStats();}},15000);
 
 // --- INITIAL SETUP ---
-bossReset();
-updateStats();
+bossReset(); updateStats();
 </script>
 </body>
 </html>
