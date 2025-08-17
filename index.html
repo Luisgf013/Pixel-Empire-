@@ -1,650 +1,265 @@
-<!doctype html>
-<html lang="pt-br">
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Pixel Empire 👑 — Idle Clicker (Enhanced)</title>
+<meta charset="UTF-8">
+<title>Pixel Empire 👑 Ultra</title>
 <style>
-  :root{
-    --bg:#08121a; --panel:#0f1b2a; --muted:#99b6d6; --text:#e9f5ff; --acc:#ffd166; --good:#63e6be; --warn:#ffd43b; --bad:#ff8787;
-    --accent-2:#7bdcff;
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0;height:100%;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text)}
-  .app{display:grid;grid-template-columns:320px 1fr 360px;gap:14px;padding:14px;min-height:100%}
-  .col{background:var(--panel);border:1px solid rgba(255,255,255,.04);border-radius:14px;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.35);overflow:hidden}
-  h1,h2{margin:.2rem 0 0.6rem}
-  h1{font-size:20px}
-  h2{font-size:16px;color:var(--muted)}
-  .balance{display:flex;gap:10px;flex-wrap:wrap}
-  .pill{background:#0d1b34;border:1px solid rgba(255,255,255,.04);border-radius:999px;padding:8px 12px;font-weight:600;display:flex;align-items:center;gap:8px}
-  .pill .dot{width:10px;height:10px;border-radius:50%}
-  .dot.gold{background:linear-gradient(#ffe066,#fcc419)}
-  .dot.gem{background:linear-gradient(#91a7ff,#4dabf7)}
-  .btn{background:var(--acc);border:0;color:#08121a;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer}
-  .btn.ghost{background:#142533;color:var(--text)}
-  .btn.warn{background:var(--warn);color:#08121a}
-  .btn.bad{background:var(--bad)}
-  .btn.good{background:var(--good);color:#102115}
-  .btn:disabled{opacity:.5;cursor:not-allowed}
-  .grid{display:grid;gap:10px}
-  .upgrade{display:flex;justify-content:space-between;align-items:center;background:#081827;border:1px solid rgba(255,255,255,.03);border-radius:12px;padding:10px}
-  .upgrade small{color:var(--muted)}
-  .bigButton{display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(120px 60px at 50% 20%, rgba(255,209,102,.06), transparent), #081827;border:1px solid rgba(255,255,255,.03);border-radius:16px;min-height:190px;cursor:pointer;user-select:none;position:relative;overflow:visible}
-  .bigButton h2{color:#fff;margin-top:6px}
-  .bigIcon{font-size:64px;filter:drop-shadow(0 6px 18px rgba(0,0,0,0.6))}
-  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  .panelHeader{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-  .kbd{background:#0e1730;border:1px solid rgba(255,255,255,.06);padding:2px 6px;border-radius:6px;color:#cde}
-  .bar{height:10px;background:#07101b;border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,.05)}
-  .fill{height:100%;background:linear-gradient(90deg,#ffd166,#ffb86b)}
-  .note{font-size:12px;color:var(--muted)}
-  .tabs{display:flex;gap:8px;margin-bottom:8px}
-  .tab{padding:8px 10px;border-radius:8px;background:#0d1b34;border:1px solid rgba(255,255,255,.04);cursor:pointer}
-  .tab.active{background:#142533}
-  .badge{background:#122534;border:1px solid rgba(255,255,255,.04);padding:4px 8px;border-radius:999px;color:#ffd}
-  .shopItem{display:flex;align-items:center;justify-content:space-between;background:#081827;border:1px solid rgba(255,255,255,.03);border-radius:12px;padding:10px}
-  .tiny{font-size:12px;color:#9fb6d9}
-  .footer{opacity:.7;margin-top:10px;font-size:12px}
-  .particle{position:absolute;border-radius:50%;pointer-events:none;mix-blend-mode:screen}
-  .skin-preview{width:48px;height:48px;border-radius:8px;background:#0b1220;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1px rgba(255,255,255,.02)}
-  .storeButtons{display:flex;gap:8px}
-  .highlight{animation:glow 1s ease-in-out infinite alternate}
-  @keyframes glow{from{box-shadow:0 0 8px rgba(255,209,102,0.08)} to{box-shadow:0 0 18px rgba(255,209,102,0.22)}}
-  @media (max-width:1100px){ .app{grid-template-columns:1fr; } .bigIcon{font-size:48px} }
+body { margin:0; font-family:Verdana,sans-serif; background:#111; color:#fff; text-align:center;}
+header { background:#222; padding:10px;}
+h1 { margin:0; font-size:2em; color:gold; text-shadow:0 0 10px #fff;}
+#game { margin:20px auto; max-width:800px;}
+button { margin:5px; padding:10px 20px; font-size:1em; cursor:pointer; border:none; border-radius:5px; background:gold; color:#111;}
+button:hover { background:#ff0;}
+#stats { margin:10px 0;}
+.progress-bar { background:#333; border-radius:5px; width:100%; height:20px; margin:5px 0; overflow:hidden;}
+.progress { background:gold; height:100%; width:0%;}
+#feed { background:#222; padding:10px; max-height:150px; overflow-y:auto; margin-top:10px;}
+.mission { background:#333; margin:5px 0; padding:5px; border-radius:5px;}
+#minigame, #gacha, #talents, #skins, #ranking { margin-top:20px;}
+#boss { background:red; height:50px; width:200px; margin:10px auto; border-radius:5px; position:relative;}
+#bossHealth { background:gold; height:100%; width:100%; border-radius:5px;}
+.particle { position:absolute; width:5px; height:5px; background:yellow; border-radius:50%; pointer-events:none; }
 </style>
 </head>
 <body>
-<div class="app" id="appRoot">
-  <!-- LEFT -->
-  <div class="col">
-    <div class="panelHeader">
-      <h1>👑 Pixel Empire</h1>
-      <div class="row">
-        <button id="btnSound" class="btn ghost">Som: ON</button>
-        <button id="btnReset" class="btn ghost" title="Zerar progresso (confirmação)">Zerar</button>
-      </div>
-    </div>
+<header>
+<h1>Pixel Empire 👑 Ultra</h1>
+</header>
 
-    <div class="balance">
-      <div class="pill"><span class="dot gold"></span><span id="gold">0</span> moedas</div>
-      <div class="pill"><span class="dot gem"></span><span id="gems">0</span> gemas</div>
-      <div class="pill">x<span id="multi">1.00</span> multiplicador</div>
-    </div>
+<div id="game">
+<div id="stats">
+<p>Moedas: <span id="coins">0</span> | Gemas: <span id="gems">0</span></p>
+<p>Nível: <span id="level">1</span> | Prestígio: <span id="prestige">0</span></p>
+</div>
 
-    <div style="margin:10px 0">
-      <div class="row" style="justify-content:space-between">
-        <div>Ganho por clique: <b id="perClick">1</b></div>
-        <div>Renda automática/s: <b id="perSec">0</b></div>
-      </div>
-      <div class="bar"><div id="offlineFill" class="fill" style="width:0%"></div></div>
-      <div class="note">Dica: segure <span class="kbd">Espaço</span> para clicar rapidinho. Construa seu império pixel por pixel.</div>
-    </div>
+<button id="clickBtn">💰 Coletar Moedas</button>
+<button id="upgradeBtn">⬆️ Upgrade (+1/moeda)</button>
+<button id="autoBtn">🤖 Automatizar (5 gemas)</button>
+<button id="prestigeBtn">👑 Prestígio</button>
 
-    <div id="clickArea" class="bigButton" aria-role="button" aria-label="Construir Império">
-      <div id="bigIcon" class="bigIcon">🏰</div>
-      <h2 id="bigTitle">Erga sua Cidade</h2>
-      <div class="tiny">Clique/Toque para ganhar moedas e expandir o império</div>
-      <!-- particle container -->
-      <div id="particlesRoot"></div>
-    </div>
+<div class="progress-bar"><div id="xpBar" class="progress"></div></div>
+<p>XP: <span id="xp">0</span>/100</p>
 
-    <h2>Melhorias</h2>
-    <div id="upgrades" class="grid"></div>
+<h3>Missões Diárias</h3>
+<div id="missions"></div>
 
-    <h2 style="margin-top:12px">Automação</h2>
-    <div id="autos" class="grid"></div>
-  </div>
+<h3>Feed</h3>
+<div id="feed"></div>
 
-  <!-- MIDDLE -->
-  <div class="col">
-    <div class="panelHeader">
-      <h1>Ascensão do Império</h1>
-      <span class="badge">tempo jogado: <span id="playtime">0m</span></span>
-    </div>
+<div id="minigame">
+<h3>Minigame: Clique no Chefão!</h3>
+<div id="boss">
+<div id="bossHealth"></div>
+</div>
+<button id="hitBoss">Atacar!</button>
+</div>
 
-    <div class="tabs">
-      <div class="tab active" data-tab="missions">Missões</div>
-      <div class="tab" data-tab="prestige">Prestígio</div>
-      <div class="tab" data-tab="events">Eventos</div>
-      <div class="tab" data-tab="store">Loja</div>
-    </div>
+<div id="talents">
+<h3>Árvore de Talentos</h3>
+<button data-buff="coin" class="talentBtn">💰 Mais moedas (+1/click, 5 gemas)</button>
+<button data-buff="xp" class="talentBtn">✨ XP Boost (+1 XP/click, 5 gemas)</button>
+<button data-buff="auto" class="talentBtn">🤖 Auto Coins +1 (5 gemas)</button>
+</div>
 
-    <div id="tab-missions" class="grid">
-      <div class="upgrade">
-        <div>
-          <div><b>Diária: Acumule 1.000 moedas</b></div>
-          <small>Recompensa: 5 gemas</small>
-        </div>
-        <button id="claimDaily" class="btn" disabled>Resgatar</button>
-      </div>
+<div id="gacha">
+<h3>Lootbox/Gacha (3 gemas)</h3>
+<button id="gachaBtn">Abrir Lootbox</button>
+<p id="gachaResult"></p>
+</div>
 
-      <div class="upgrade">
-        <div>
-          <div><b>Desafio: 10.000 moedas sem renascer</b></div>
-          <small>Recompensa: +10% multiplicador permanente</small>
-        </div>
-        <button id="claimChallenge" class="btn" disabled>Resgatar</button>
-      </div>
+<div id="skins">
+<h3>Skins Desbloqueáveis</h3>
+<button data-skin="click" class="skinBtn">Clique Skin</button>
+<button data-skin="boss" class="skinBtn">Chefão Skin</button>
+</div>
 
-      <div class="note">Missões reiniciam diariamente (horário local). Boa sorte, soberano!</div>
-    </div>
+<div id="ranking">
+<h3>Ranking Local</h3>
+<ol id="rankList"></ol>
+</div>
 
-    <div id="tab-prestige" style="display:none" class="grid">
-      <div class="upgrade">
-        <div>
-          <div><b>Renascer</b> — transforme seu ouro em <b>Gemas do Império</b></div>
-          <small>Gemas concedem bônus permanentes. Renascer reinicia ouro e melhorias, mas aumenta seu poder.</small>
-        </div>
-      </div>
-      <div class="row">
-        <div class="pill">Gemas ao renascer: <b id="gemsOnPrestige">0</b></div>
-        <div class="pill">Bônus por gema: <b>+2% multiplicador</b></div>
-      </div>
-      <button id="btnPrestige" class="btn warn">Renascer agora</button>
-      <div class="note">Fórmula: gemas = ⌊√(total de moedas vitalício / 1.000)⌋</div>
-    </div>
-
-    <div id="tab-events" style="display:none" class="grid">
-      <div class="upgrade">
-        <div>
-          <div><b>Eventos Aleatórios</b></div>
-          <small>Eventos especiais dão bônus temporários ao império.</small>
-        </div>
-        <div class="row">
-          <button id="triggerEvent" class="btn ghost">Forçar Evento (debug)</button>
-          <button id="btnWave" class="btn ghost">Evento - Frenesi</button>
-        </div>
-      </div>
-      <div id="eventLog" class="grid"></div>
-    </div>
-
-    <div id="tab-store" style="display:none" class="grid">
-      <h2>Loja do Império</h2>
-      <div class="shopItem">
-        <div>
-          <div><b>Pacote de Gemas (Simulado)</b></div>
-          <div class="tiny">+50 gemas (simulação; sem cobrança)</div>
-        </div>
-        <div class="storeButtons">
-          <button id="btnBuy50" class="btn good">Comprar (Sim)</button>
-        </div>
-      </div>
-
-      <h2>Skins</h2>
-      <div id="skins" class="grid"></div>
-
-      <div class="note">Loja mock: para testes UX. Compras reais precisam de backend e gateway de pagamento.</div>
-    </div>
-
-    <div class="footer">Progresso salva automaticamente. Volte depois que seu império seguirá crescendo.</div>
-  </div>
-
-  <!-- RIGHT -->
-  <div class="col">
-    <div class="panelHeader">
-      <h1>Relatório do Império</h1>
-      <span class="badge">v1.1</span>
-    </div>
-
-    <div class="grid">
-      <div class="upgrade">
-        <div>Total vitalício de moedas</div><b id="lifetime">0</b>
-      </div>
-      <div class="upgrade">
-        <div>Cliques</div><b id="clicks">0</b>
-      </div>
-      <div class="upgrade">
-        <div>Renasceram</div><b id="prestiges">0</b>
-      </div>
-    </div>
-
-    <h2 style="margin-top:12px">Feed</h2>
-    <div id="feed" class="grid" style="max-height:360px;overflow:auto;"></div>
-  </div>
 </div>
 
 <script>
-/* ===== Pixel Empire — Enhanced single-file =====
-   Features added:
-   - sprites via SVG data-URIs,
-   - skins & cosmetic shop with gem purchases,
-   - animations & particles,
-   - WebAudio simple sounds on events (toggleable),
-   - balance tuned for more immediate gratification.
-*/
+// --- GAME STATE ---
+let coins=0, gems=0, level=1, xp=0, prestige=0;
+let coinPerClick=1, autoCoins=0;
+let bossHealth=100, bossMax=100;
+let clickCount=0, bossHits=0;
+let missions=[
+{desc:"Colete 50 moedas", goal:50, done:false},
+{desc:"Clique 100 vezes", goal:100, done:false},
+{desc:"Ataque o chefão 10 vezes", goal:10, done:false}
+];
+let talents={coin:0,xp:0,auto:0};
+let skinsUnlocked={click:false,boss:false};
+let ranking=[{name:"Player",score:0}];
 
-/* Utility */
-const $ = id => document.getElementById(id);
-const fmt = n => n>=1e9? (n/1e9).toFixed(2)+'B' : n>=1e6? (n/1e6).toFixed(2)+'M' : n>=1e3? (n/1e3).toFixed(2)+'k' : Math.floor(n).toString();
+// --- ELEMENTS ---
+const coinsEl=document.getElementById('coins');
+const gemsEl=document.getElementById('gems');
+const levelEl=document.getElementById('level');
+const xpEl=document.getElementById('xp');
+const xpBar=document.getElementById('xpBar');
+const prestigeEl=document.getElementById('prestige');
+const missionsEl=document.getElementById('missions');
+const feedEl=document.getElementById('feed');
+const bossEl=document.getElementById('bossHealth');
+const rankList=document.getElementById('rankList');
+const gachaResult=document.getElementById('gachaResult');
 
-function now(){ return Date.now(); }
-
-/* Small embedded SVG sprites (data URIs) */
-const SPRITES = {
-  castle: `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'><rect width='64' height='64' fill='%23081b2f'/><g fill='%23ffd166'><rect x='8' y='22' width='48' height='6' rx='1'/><rect x='12' y='12' width='8' height='12' rx='1'/><rect x='44' y='12' width='8' height='12' rx='1'/><rect x='26' y='6' width='12' height='10' rx='1'/></g></svg>`)}`,
-  castle2: `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'><rect width='64' height='64' fill='%2307141b'/><g fill='%237bdcff'><rect x='6' y='24' width='52' height='6' rx='2'/><circle cx='20' cy='18' r='6' fill='%23fff' opacity='0.08'/><path d='M16 18v-6h8v6' fill='%237bdcff'/><path d='M40 18v-6h8v6' fill='%237bdcff'/></g></svg>`)}`,
-  castle3: `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'><rect width='64' height='64' fill='%23120b0b'/><g fill='%23ff8a66'><rect x='10' y='24' width='44' height='6' rx='2'/><rect x='18' y='12' width='8' height='12' rx='1'/><rect x='38' y='12' width='8' height='12' rx='1'/></g></svg>`)}`,
-};
-
-/* Sound engine */
-let audioOn = true;
-const AudioEngine = (function(){
-  let ctx = null;
-  function ensure(){
-    if(ctx) return ctx;
-    try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){ audioOn=false; ctx=null; }
-    return ctx;
-  }
-  function clickSound(){
-    if(!audioOn) return;
-    const C = ensure(); if(!C) return;
-    const o = C.createOscillator(); const g = C.createGain();
-    o.type = 'square'; o.frequency.value = 900 + Math.random()*200; g.gain.value = 0.04;
-    o.connect(g); g.connect(C.destination);
-    const t0=C.currentTime; o.start(t0); g.gain.setValueAtTime(0.04,t0); g.gain.exponentialRampToValueAtTime(0.001,t0+0.08); o.stop(t0+0.09);
-  }
-  function reward(){
-    if(!audioOn) return;
-    const C=ensure(); if(!C) return;
-    const o=C.createOscillator(); const g=C.createGain();
-    o.type='sine'; o.frequency.value=1200; g.gain.value=0.06;
-    o.connect(g); g.connect(C.destination);
-    const t0=C.currentTime; o.start(t0); g.gain.setValueAtTime(0.06,t0); g.gain.exponentialRampToValueAtTime(0.001,t0+0.22); o.stop(t0+0.24);
-  }
-  return {clickSound, reward, ensure};
-})();
-
-/* State - tuned for faster early gratification */
-const state = {
-  gold: 0,
-  gems: 0,
-  lifetime: 0,
-  clicks: 0,
-  perClick: 2,       // increased base
-  perSec: 0,
-  multi: 1,
-  upgrades: [
-    { id:'bronze', name:'Centro de Produção', desc:'Clique +1', base:15, level:0, incClick:1 },
-    { id:'iron', name:'Oficina Avançada', desc:'Clique +5', base:120, level:0, incClick:5 },
-    { id:'steel', name:'Fábrica Pixel',  desc:'Clique +25', base:900, level:0, incClick:25 },
-  ],
-  autos: [
-    { id:'cart',  name:'Carrinho', desc:'+1/s', base:30,  level:0, incSec:1 },
-    { id:'worker', name:'Artesão', desc:'+5/s', base:220, level:0, incSec:5 },
-    { id:'drill', name:'Autômato', desc:'+20/s', base:1500, level:0, incSec:20 },
-  ],
-  skins: [
-    { id:'default', name:'Padrão', price:0, owned:true, sprite:SPRITES.castle, theme:'default' },
-    { id:'aurora', name:'Pixel Aurora', price:20, owned:false, sprite:SPRITES.castle2, theme:'aurora' },
-    { id:'lava', name:'Forja Vulcânica', price:25, owned:false, sprite:SPRITES.castle3, theme:'lava' }
-  ],
-  activeSkin: 'default',
-
-  prestige: { times:0 },
-  lastSave: Date.now(),
-  lastTick: Date.now(),
-  dailyKey: dailyKey(),
-  dailyDone: false,
-  challengeDone: false,
-  theme: 'default',
-  eventTimer: 12,
-};
-
-function dailyKey(){ const d=new Date(); return [d.getFullYear(), d.getMonth()+1, d.getDate()].join('-'); }
-function cost(base, level){ return Math.floor(base * Math.pow(1.13, level)); } // slightly gentler curve
-
-/* Persistence */
-function save(){
-  state.lastSave = now();
-  localStorage.setItem('pixel_empire_v2', JSON.stringify(state));
-}
-function load(){
-  const raw = localStorage.getItem('pixel_empire_v2');
-  if(!raw) return;
-  try{
-    const s = JSON.parse(raw);
-    // merge safely
-    Object.assign(state, s);
-    // ensure skins array present for older saves
-    if(!state.skins) state.skins = [];
-    if(state.dailyKey !== dailyKey()){ state.dailyKey = dailyKey(); state.dailyDone=false; }
-  }catch(e){}
-}
-
-/* Offline gain (up to 8h) */
-function grantOffline(){
-  const nowTime = now();
-  const deltaSec = Math.min(60*60*8, Math.floor((nowTime - state.lastSave)/1000));
-  if(deltaSec>0){
-    const gain = state.perSec * state.multi * deltaSec;
-    state.gold += gain; state.lifetime += gain;
-    logFeed(`⏱️ Progresso offline: +${fmt(gain)} moedas em ${Math.floor(deltaSec/60)}m`);
-    const pct = Math.min(100, (deltaSec/(60*60*8))*100);
-    $('offlineFill').style.width = pct + '%';
-  }
-}
-
-/* UI render */
-function render(){
-  $('gold').textContent = fmt(state.gold);
-  $('gems').textContent = fmt(state.gems);
-  $('multi').textContent = state.multi.toFixed(2);
-  $('perClick').textContent = fmt(state.perClick * state.multi);
-  $('perSec').textContent = fmt(state.perSec * state.multi);
-  $('lifetime').textContent = fmt(state.lifetime);
-  $('clicks').textContent = fmt(state.clicks);
-  $('prestiges').textContent = fmt(state.prestige.times);
-
-  // upgrades
-  const upWrap = $('upgrades'); upWrap.innerHTML = '';
-  state.upgrades.forEach(u=>{
-    const c = cost(u.base, u.level);
-    const can = state.gold >= c;
-    const div = document.createElement('div'); div.className='upgrade';
-    div.innerHTML = `<div><div><b>${u.name}</b> <small>Lv.${u.level}</small></div><small>${u.desc}</small></div>
-      <div class="row"><div class="pill">${fmt(c)} moedas</div><button class="btn ${can?'':'ghost'}" ${can?'':'disabled'}>Comprar</button></div>`;
-    div.querySelector('button').onclick = ()=> buyUpgrade(u);
-    upWrap.appendChild(div);
-  });
-
-  // autos
-  const autoWrap = $('autos'); autoWrap.innerHTML = '';
-  state.autos.forEach(a=>{
-    const c = cost(a.base, a.level);
-    const can = state.gold >= c;
-    const div = document.createElement('div'); div.className='upgrade';
-    div.innerHTML = `<div><div><b>${a.name}</b> <small>Lv.${a.level}</small></div><small>${a.desc}</small></div>
-      <div class="row"><div class="pill">${fmt(c)} moedas</div><button class="btn ${can?'':'ghost'}" ${can?'':'disabled'}>Comprar</button></div>`;
-    div.querySelector('button').onclick = ()=> buyAuto(a);
-    autoWrap.appendChild(div);
-  });
-
-  // skins shop
-  const skinsWrap = $('skins'); skinsWrap.innerHTML = '';
-  state.skins.forEach(skin=>{
-    const div = document.createElement('div'); div.className='shopItem';
-    div.innerHTML = `<div style="display:flex;gap:10px;align-items:center">
-        <div class="skin-preview"><img src="${skin.sprite}" width="40" height="40" alt=""></div>
-        <div><b>${skin.name}</b><div class="tiny">${skin.price} gemas</div></div>
-      </div>
-      <div class="row">
-        <button class="btn ${skin.owned?'ghost':''}" ${skin.owned?'disabled':''}>${skin.owned?'Comprado':'Comprar'}</button>
-        <button class="btn" ${skin.owned? '':'disabled'}>Aplicar</button>
-      </div>`;
-    const buyBtn = div.querySelectorAll('button')[0];
-    const applyBtn = div.querySelectorAll('button')[1];
-    buyBtn.onclick = ()=> buySkin(skin);
-    applyBtn.onclick = ()=> applySkin(skin);
-    if(skin.id === state.activeSkin){ div.querySelector('.skin-preview').classList.add('highlight'); applyBtn.disabled=true; buyBtn.disabled=true; }
-    skinsWrap.appendChild(div);
-  });
-
-  // prestige calc
-  const gemsGain = Math.floor(Math.sqrt(state.lifetime/800)); // a bit easier
-  $('gemsOnPrestige').textContent = fmt(gemsGain);
-
-  // mission buttons
-  $('claimDaily').disabled = !(state.gold >= 1000 && !state.dailyDone);
-  $('claimChallenge').disabled = !(state.gold >= 10000 && !state.challengeDone);
-}
-
-/* Buying logic */
-function buyUpgrade(u){
-  const c = cost(u.base, u.level);
-  if(state.gold < c) return;
-  state.gold -= c; u.level++; state.perClick += u.incClick;
-  animatePurchase('gold'); AudioEngine.clickSound(); logFeed(`🔧 Comprou ${u.name} Lv.${u.level}`);
-  render(); save();
-}
-function buyAuto(a){
-  const c = cost(a.base, a.level);
-  if(state.gold < c) return;
-  state.gold -= c; a.level++; state.perSec += a.incSec;
-  animatePurchase('gold'); AudioEngine.clickSound(); logFeed(`🤖 Comprou ${a.name} Lv.${a.level}`);
-  render(); save();
-}
-
-/* Click action with animation & sound */
-function spawnParticle(x,y,clr,size=10,life=600){
-  const p = document.createElement('div');
-  p.className = 'particle';
-  p.style.left = (x - size/2) + 'px';
-  p.style.top = (y - size/2) + 'px';
-  p.style.width = size + 'px';
-  p.style.height = size + 'px';
-  p.style.background = clr;
-  p.style.opacity = '0.95';
-  p.style.transition = `transform ${life}ms linear, opacity ${life}ms linear`;
-  document.body.appendChild(p);
-  requestAnimationFrame(()=> {
-    p.style.transform = `translateY(-${40 + Math.random()*40}px) scale(${0.3 + Math.random()*0.8})`;
-    p.style.opacity = '0';
-  });
-  setTimeout(()=> p.remove(), life + 50);
-}
-
-function clickBuild(){
-  const gain = state.perClick * state.multi;
-  state.gold += gain; state.lifetime += gain; state.clicks++;
-  // feedback
-  AudioEngine.clickSound();
-  pop(`+${fmt(gain)} moedas`);
-  // particle burst at center of big icon
-  const rect = $('bigIcon').getBoundingClientRect();
-  for(let i=0;i<6;i++){
-    spawnParticle(rect.left + rect.width/2 + (Math.random()-0.5)*80, rect.top + rect.height/2 + (Math.random()-0.5)*60, 'rgba(255,209,102,0.9)', 8+Math.random()*8, 500 + Math.random()*600);
-  }
-  render(); save();
-}
-
-/* quick visual popup */
-function pop(text){
-  const el = document.createElement('div');
-  el.textContent = text;
-  el.style.position='fixed'; el.style.left='50%'; el.style.top='28%';
-  el.style.transform='translate(-50%,-50%)'; el.style.padding='8px 12px'; el.style.borderRadius='12px';
-  el.style.background='rgba(255,209,102,0.12)'; el.style.border='1px solid rgba(255,209,102,0.12)';
-  el.style.color='#ffefa8'; el.style.fontWeight='700'; el.style.pointerEvents='none'; el.style.zIndex=9999;
-  document.body.appendChild(el);
-  let y=0, a=1; const id=setInterval(()=>{ y-=1; a-=0.02; el.style.transform=`translate(-50%, calc(-50% + ${y}px))`; el.style.opacity=a; if(a<=0){ clearInterval(id); el.remove(); } }, 16);
-}
-
-/* purchase animation */
-function animatePurchase(type){
-  const el = $('gold');
-  el.classList.add('highlight');
-  setTimeout(()=> el.classList.remove('highlight'), 900);
-}
-
-/* events */
-function maybeEvent(dt){
-  state.eventTimer -= dt;
-  if(state.eventTimer <= 0){
-    state.eventTimer = 10 + Math.random()*25;
-    const r = Math.random();
-    if(r < 0.33){
-      // frenzy
-      const factor = 1 + Math.random()*0.6;
-      state.perClick *= factor;
-      logEvent(`⚡ Frenesi: ganho por clique x${factor.toFixed(2)} por 20s`);
-      setTimeout(()=> { state.perClick /= factor; render(); }, 20000);
-    } else if(r < 0.66){
-      const bonus = 200 + Math.floor(Math.random()*600);
-      state.gold += bonus; state.lifetime += bonus;
-      logEvent(`🌧️ Chuva real: +${fmt(bonus)} moedas`);
-      AudioEngine.reward();
-    } else {
-      state.multi *= 1.3;
-      logEvent(`✨ Bênção imperial: multiplicador x1.3 por 25s`);
-      setTimeout(()=> { state.multi /= 1.3; render(); }, 25000);
-    }
-    render(); save();
-  }
-}
-
-/* Prestige */
-function doPrestige(){
-  const gain = Math.floor(Math.sqrt(state.lifetime / 800));
-  if(gain <= 0){ alert('Junte mais moedas para ganhar gemas ao renascer!'); return; }
-  if(!confirm(`Você ganhará ${gain} gemas do império e reiniciará progresso. Continuar?`)) return;
-  state.gems += gain; state.prestige.times++;
-  state.multi = 1 + (state.gems * 0.02);
-  state.gold = 0; state.perClick = 2; state.perSec = 0;
-  state.upgrades.forEach(u => { u.level = 0; });
-  state.autos.forEach(a => { a.level = 0; });
-  logFeed(`🔄 Renasci: ganhou ${gain} gemas. Multiplicador x${state.multi.toFixed(2)}.`);
-  render(); save();
-}
-
-/* missions */
-function tryDaily(){
-  if(state.gold >= 1000 && !state.dailyDone){ state.gems += 5; state.dailyDone = true; logFeed('🎁 Missão diária completada: +5 gemas'); render(); save(); }
-}
-function tryChallenge(){
-  if(state.gold >= 10000 && !state.challengeDone){ state.multi *= 1.10; state.challengeDone = true; logFeed('🏆 Desafio concluído: +10% multiplicador permanente'); render(); save(); }
-}
-
-/* skins */
-function buySkin(skin){
-  if(skin.owned){ alert('Você já possui esta skin.'); return; }
-  if(state.gems < skin.price){ alert('Gemas insuficientes.'); return; }
-  if(!confirm(`Comprar skin ${skin.name} por ${skin.price} gemas?`)) return;
-  state.gems -= skin.price; skin.owned = true;
-  logFeed(`✨ Comprou skin ${skin.name}`);
-  render(); save();
-}
-function applySkin(skin){
-  if(!skin.owned){ alert('Compre a skin primeiro.'); return; }
-  state.activeSkin = skin.id;
-  state.theme = skin.theme || 'default';
-  applyTheme(state.theme);
-  $('bigIcon').innerHTML = `<img src="${skin.sprite}" width="64" height="64" alt="">`;
-  logFeed(`🎨 Aplicou skin ${skin.name}`);
-  render(); save();
-}
-
-/* store simulated purchase */
-function mockBuy50(){
-  if(!confirm('Simular compra: adicionar 50 gemas ao saldo? (Sem cobrança real)')) return;
-  state.gems += 50;
-  logFeed('💎 Simulado: +50 gemas (teste de compra)');
-  AudioEngine.reward();
-  render(); save();
-}
-
-/* logs */
-function logFeed(msg){
-  const wrap = $('feed');
-  const row = document.createElement('div'); row.className='upgrade';
-  row.innerHTML = `<div class="tiny">${msg}</div><div>${new Date().toLocaleTimeString()}</div>`;
-  wrap.prepend(row);
-}
-function logEvent(msg){
-  const el = $('eventLog');
-  if(!el) return;
-  const row = document.createElement('div'); row.className='upgrade'; row.innerHTML = `<div>${msg}</div>`;
-  el.prepend(row);
-  logFeed(msg);
-}
-
-/* helpers */
-function fmtTime(sec){ const m = Math.floor(sec/60); return m + 'm'; }
-
-/* Interactions & keyboard */
-$('clickArea').addEventListener('click', clickBuild);
-let spaceHeld=false, repeater=null;
-window.addEventListener('keydown', (ev)=>{ if(ev.code === 'Space' && !spaceHeld){ spaceHeld=true; clickBuild(); repeater=setInterval(clickBuild, 70);} if(ev.code==='KeyP') togglePause(); });
-window.addEventListener('keyup', (ev)=>{ if(ev.code === 'Space'){ spaceHeld=false; clearInterval(repeater); } });
-
-$('btnPrestige').onclick = doPrestige;
-$('claimDaily').onclick = tryDaily;
-$('claimChallenge').onclick = tryChallenge;
-$('triggerEvent').onclick = ()=> { state.eventTimer = 0; };
-$('btnWave').onclick = ()=> { state.eventTimer = 0; };
-$('btnBuy50').onclick = mockBuy50;
-$('btnSound').onclick = ()=> { audioOn = !audioOn; $('btnSound').textContent = 'Som: ' + (audioOn ? 'ON' : 'OFF'); if(audioOn) AudioEngine.ensure(); };
-$('btnReset').onclick = ()=> { if(confirm('Zerar TODO o progresso de Pixel Empire?')){ localStorage.removeItem('pixel_empire_v2'); location.reload(); } };
-
-/* Tabs */
-document.querySelectorAll('.tab').forEach(t=>{
-  t.addEventListener('click', ()=>{
-    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-    t.classList.add('active');
-    const name = t.getAttribute('data-tab');
-    ['missions','prestige','events','store'].forEach(k=>{
-      const el = $('tab-'+k);
-      if(el) el.style.display = (k===name)?'block':'none';
+// --- FUNCTIONS ---
+function updateStats(){
+    coinsEl.textContent=coins;
+    gemsEl.textContent=gems;
+    levelEl.textContent=level;
+    xpEl.textContent=xp;
+    xpBar.style.width=xp+'%';
+    prestigeEl.textContent=prestige;
+    missionsEl.innerHTML='';
+    missions.forEach((m,i)=>{
+        missionsEl.innerHTML+=`<div class="mission">${m.desc} - ${m.done?"✅":"❌"}</div>`;
     });
-  });
+    updateRanking();
+}
+function addFeed(text){
+    const p=document.createElement('p');
+    p.textContent=text;
+    feedEl.prepend(p);
+}
+function gainXP(amount){
+    xp+=amount;
+    if(xp>=100){
+        xp-=100;
+        level++;
+        addFeed(`✨ Subiu para nível ${level}!`);
+    }
+}
+function checkMissions(){
+    missions.forEach((m,i)=>{
+        if(!m.done){
+            if((m.desc.includes("moedas") && coins>=m.goal) ||
+               (m.desc.includes("Clique") && clickCount>=m.goal) ||
+               (m.desc.includes("chefão") && bossHits>=m.goal)){
+                m.done=true;
+                gems+=5;
+                addFeed(`🎉 Missão completa: ${m.desc} - +5 gemas`);
+            }
+        }
+    });
+}
+function bossReset(){
+    bossMax=100+level*10;
+    bossHealth=bossMax;
+    bossEl.style.width='100%';
+}
+function spawnParticle(x,y){
+    const p=document.createElement('div');
+    p.className='particle';
+    p.style.left=x+'px';
+    p.style.top=y+'px';
+    document.body.appendChild(p);
+    setTimeout(()=>{p.remove();},500);
+}
+function updateRanking(){
+    ranking[0].score=coins;
+    ranking.sort((a,b)=>b.score-a.score);
+    rankList.innerHTML='';
+    ranking.forEach(r=>{
+        const li=document.createElement('li');
+        li.textContent=`${r.name}: ${r.score}`;
+        rankList.appendChild(li);
+    });
+}
+
+// --- CLICK GAME ---
+document.getElementById('clickBtn').addEventListener('click',e=>{
+    coins+=coinPerClick + talents.coin;
+    clickCount++;
+    gainXP(1+talents.xp);
+    addFeed(`💰 Ganhou ${coinPerClick+talents.coin} moedas!`);
+    spawnParticle(e.clientX,e.clientY);
+    checkMissions();
+    updateStats();
 });
 
-/* Theme application */
-function applyTheme(name){
-  state.theme = name;
-  if(name==='aurora'){
-    document.documentElement.style.setProperty('--bg','#071229');
-    document.documentElement.style.setProperty('--panel','#071a2a');
-    document.documentElement.style.setProperty('--acc','#7bdcff');
-    document.documentElement.style.setProperty('--accent-2','#7bdcff');
-  } else if(name==='lava'){
-    document.documentElement.style.setProperty('--bg','#1a0b0b');
-    document.documentElement.style.setProperty('--panel','#241111');
-    document.documentElement.style.setProperty('--acc','#ff8a66');
-    document.documentElement.style.setProperty('--accent-2','#ff8a66');
-  } else {
-    document.documentElement.style.setProperty('--bg','#08121a');
-    document.documentElement.style.setProperty('--panel','#0f1b2a');
-    document.documentElement.style.setProperty('--acc','#ffd166');
-    document.documentElement.style.setProperty('--accent-2','#ffd166');
-  }
-}
+// --- UPGRADE ---
+document.getElementById('upgradeBtn').addEventListener('click',()=>{
+    if(coins>=10){ coins-=10; coinPerClick++; addFeed(`⬆️ Upgrade comprado! Cada clique vale ${coinPerClick} moedas`);}
+    else addFeed("❌ Moedas insuficientes para upgrade.");
+});
 
-/* Tick loop */
-let totalPlay = 0, timeUI = 0;
-function tick(){
-  const nowT = now();
-  let dt = (nowT - state.lastTick)/1000;
-  if(!isFinite(dt) || dt <= 0) dt = 0.1;
-  state.lastTick = nowT;
+// --- AUTO CLICK ---
+document.getElementById('autoBtn').addEventListener('click',()=>{
+    if(gems>=5){ gems-=5; autoCoins=1; addFeed("🤖 Automatização comprada!"); updateStats();}
+    else addFeed("❌ Gemas insuficientes.");
+});
 
-  const gain = state.perSec * state.multi * dt;
-  if(gain > 0){ state.gold += gain; state.lifetime += gain; }
+// --- PRESTIGE ---
+document.getElementById('prestigeBtn').addEventListener('click',()=>{
+    if(level>=10){ prestige++; coins=0; gems=0; level=1; xp=0; coinPerClick=1; autoCoins=0; clickCount=0; bossHits=0; bossReset(); addFeed(`👑 Prestígio alcançado! Total de prestígio: ${prestige}`); updateStats();}
+    else addFeed("❌ Alcance nível 10 para Prestígio.");
+});
 
-  maybeEvent(dt);
-  totalPlay += dt;
-  if(timeUI <= 0){ $('playtime').textContent = fmtTime(totalPlay); timeUI = 1.5; } else timeUI -= dt;
+// --- BOSS MINIGAME ---
+document.getElementById('hitBoss').addEventListener('click',()=>{
+    let damage=coinPerClick*2 + talents.coin;
+    bossHealth-=damage;
+    bossHits++;
+    if(bossHealth<=0){ coins+=10+talents.coin; gems+=1; addFeed("🔥 Chefão derrotado! +10 moedas e 1 gema"); bossReset(); bossHits=0;}
+    bossEl.style.width=(bossHealth/bossMax)*100+'%';
+    checkMissions();
+    updateStats();
+});
 
-  render();
-}
+// --- TALENTS ---
+document.querySelectorAll('.talentBtn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+        let buff=btn.dataset.buff;
+        if(gems>=5){ gems-=5; talents[buff]++; addFeed(`💡 Talento ${buff} adquirido!`); updateStats();}
+        else addFeed("❌ Gemas insuficientes para talento.");
+    });
+});
 
-/* maybeEvent wrapper */
-function maybeEvent(dt){ state.eventTimer -= dt; if(state.eventTimer <= 0){ state.eventTimer = 8 + Math.random()*26; const r = Math.random();
-  if(r<.33){ const factor = 1 + Math.random()*0.6; state.perClick *= factor; logEvent(`⚡ Frenesi: clique x${factor.toFixed(2)} por 20s`); setTimeout(()=>{ state.perClick /= factor; render(); }, 20000);
-  } else if(r<.66){ const bonus = 200 + Math.floor(Math.random()*400); state.gold += bonus; state.lifetime += bonus; logEvent(`🌧️ Chuva real: +${fmt(bonus)} moedas`); AudioEngine.reward();
-  } else { state.multi *= 1.3; logEvent(`✨ Bênção imperial: multiplicador x1.3 por 25s`); setTimeout(()=>{ state.multi /= 1.3; render(); }, 25000); }
-  render(); save(); }}
+// --- GACHA ---
+document.getElementById('gachaBtn').addEventListener('click',()=>{
+    if(gems>=3){
+        gems-=3;
+        let reward=Math.random();
+        if(reward<0.5){ coins+=10+talents.coin; gachaResult.textContent="🎉 Ganhou 10 moedas!";}
+        else if(reward<0.8){ gems+=2; gachaResult.textContent="💎 Ganhou 2 gemas!";}
+        else { talents.coin++; gachaResult.textContent="💡 Ganhou talento bônus de moedas!";}
+        updateStats();
+    } else gachaResult.textContent="❌ Gemas insuficientes!";
+});
 
-/* Load and boot */
-load(); grantOffline(); applyTheme(state.theme);
-$('bigIcon').innerHTML = `<img src="${state.skins.find(s=>s.id===state.activeSkin).sprite}" width="64" height="64" alt="">`;
-state.lastTick = now();
-setInterval(tick, 1000/10); // 10 TPS
-setInterval(()=>{ tick(); save(); }, 1000);
-setInterval(()=>{ $('claimDaily').disabled = !(state.gold >= 1000 && !state.dailyDone); $('claimChallenge').disabled = !(state.gold >= 10000 && !state.challengeDone); }, 500);
+// --- SKINS ---
+document.querySelectorAll('.skinBtn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+        let skin=btn.dataset.skin;
+        skinsUnlocked[skin]=!skinsUnlocked[skin];
+        addFeed(`✨ Skin ${skin} ${skinsUnlocked[skin]?"ativada":"desativada"}`);
+    });
+});
 
-render();
+// --- AUTO COINS INTERVAL ---
+setInterval(()=>{
+    coins+=autoCoins+talents.auto;
+    if(autoCoins>0) addFeed(`🤖 Automatização gerou ${autoCoins+talents.auto} moedas.`);
+    gainXP(autoCoins+talents.auto);
+    checkMissions();
+    updateStats();
+},5000);
 
-/* Initial shop rendering: ensure skins present in state.skins (for backward compatibility) */
-if(!state.skins || !Array.isArray(state.skins) || state.skins.length === 0){
-  state.skins = [
-    { id:'default', name:'Padrão', price:0, owned:true, sprite:SPRITES.castle, theme:'default' },
-    { id:'aurora', name:'Pixel Aurora', price:20, owned:false, sprite:SPRITES.castle2, theme:'aurora' },
-    { id:'lava', name:'Forja Vulcânica', price:25, owned:false, sprite:SPRITES.castle3, theme:'lava' }
-  ];
-  save();
-}
-render();
+// --- RANDOM EVENTS ---
+setInterval(()=>{
+    let chance=Math.random();
+    if(chance<0.1){ let bonus=5+Math.floor(Math.random()*5); coins+=bonus; addFeed(`🎁 Evento surpresa! Ganhou ${bonus} moedas`); updateStats();}
+},15000);
+
+// --- INITIAL SETUP ---
+bossReset();
+updateStats();
 </script>
 </body>
 </html>
